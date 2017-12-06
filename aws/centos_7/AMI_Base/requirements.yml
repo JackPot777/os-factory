@@ -1,0 +1,4 @@
+---
+- name: system-update
+  src: https://github.com/lborguetti/ansible-role-system-update.git
+  version: master

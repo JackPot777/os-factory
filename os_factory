@@ -1,0 +1,23 @@
+#!/usr/bin/env bash
+# Use : os_factory aws linux AMI_001
+set -e
+
+# check params
+if [ -z "$1" ] || [ -z "$2" ] || [ -z "$3" ] ; then
+    echo "VAR is unset or set to the empty string"
+    exit 1
+fi
+
+provider=$(echo "$1" | tr '[:upper:]' '[:lower:]')
+os_family=$(echo "$2" | tr '[:upper:]' '[:lower:]')
+source_ami=$3
+
+CURRENT=$PWD
+cd $(dirname $0)/plays
+
+ansible-playbook $provider.build.playbook.yml   \
+    -e osf_provider=$provider                   \
+    -e osf_os_type=$os_family                   \
+    -e osf_src_ami=$source_ami
+
+cd $CURRENT

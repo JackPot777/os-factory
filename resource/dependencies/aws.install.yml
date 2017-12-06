@@ -1,0 +1,19 @@
+- hosts: all
+  become: true
+  roles:
+    - system-update
+    - packer
+  tasks:
+    - name: "Install package"
+      apt:
+        name: python-pip
+        update_cache: yes
+
+    - name: "Install deps package"
+      pip:
+        name: "{{ item }}"
+      with_items:
+        - boto
+        - boto3
+        - awscli
+        - ansible-lint

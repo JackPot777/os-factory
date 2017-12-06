@@ -1,0 +1,42 @@
+---
+# tasks file for packer
+# Uninstall/remove task
+- name: Check for previous installation
+  stat:
+    path: "{{ packer_path }}/packer"
+  register: installed
+
+- name: Check version of previous installation
+  shell: "{{ packer_path }}/packer --version"
+  register: packer_installed
+  ignore_errors: true
+  changed_when: false
+  when: installed.stat.exists
+
+- include: install.yml
+  when: not installed.stat.exists or
+        (packer_installed is defined and
+        packer_installed.stdout != packer_version)
+
+- name: "Download windows-update"
+  get_url:
+    url: "{{ plugins_url }}/packer-provisioner-windows-update-linux.tgz"
+    dest: "{{ plugins_download_dir }}/packer-provisioner-windows-update-linux.tgz"
+
+- name: "untar windows-update"
+  unarchive:
+    src: "{{ plugins_download_dir }}/packer-provisioner-windows-update-linux.tgz"
+    dest: "{{ plugins_download_dir }}"
+    remote_src: yes
+
+- name: "Copy windows-update"
+  copy:
+    src: "{{ plugins_download_dir }}/packer-provisioner-windows-update"
+    dest: "{{ packer_path }}/packer-provisioner-windows-update"
+    remote_src: yes
+    mode: 0755
+
+- name: "Add package for packer"
+  template:
+    src: "packerconfig"
+    dest: "~/.packerconfig"

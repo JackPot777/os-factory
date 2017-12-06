@@ -1,0 +1,74 @@
+{
+  "variables": {
+    "aws_access_key": "",
+    "aws_secret_key": "",
+    "aws_token": "",
+    "build_subnet_id": "",
+    "build_instance_type": "t2.large",
+    "build_default_user": "centos",
+    "build_region": "",
+    "build_image_name": "",
+    "source_ami_name": "",
+    "source_ami_owner": "",
+    "playbook_build": "",
+    "playbook_roles": "",
+    "json_output_path": ""
+  },
+
+
+  "builders": [
+    {
+      "type": "amazon-ebs",
+      "region": "{{ user `build_region` }}",
+      "access_key": "{{ user `aws_access_key` }}",
+      "secret_key": "{{ user `aws_secret_key` }}",
+      "token": "{{ user `aws_token` }}",
+      "subnet_id": "{{ user `build_subnet_id` }}",
+      "source_ami_filter": {
+        "filters": {
+          "name": "{{ user `source_ami_name` }}"
+        },
+        "owners": [
+          "{{ user `source_ami_owner` }}"
+        ],
+        "most_recent": true
+      },
+      "instance_type": "{{ user `build_instance_type` }}",
+      "ami_name": "{{ user `build_image_name` }}",
+      "tags": {
+        "Name": "{{ user `build_image_name` }}",
+        "Release": "{{ timestamp }}"
+      },
+      "associate_public_ip_address": "false",
+      "communicator": "winrm",
+      "winrm_username": "{{ user `build_default_user` }}",
+      "ssh_private_ip": true,
+      "user_data_file": "{{ user `playbook_build`}}/../../files/setup_winrm.txt"
+    }
+  ],
+
+  "provisioners": [
+    {
+      "type": "windows-update"
+    },
+    {
+      "type": "ansible",
+      "playbook_file": "{{ user `playbook_build`}}/play.yml",
+      "extra_arguments": [
+        "--connection", "packer",
+        "--extra-vars", "ansible_shell_type=powershell ansible_shell_executable="
+      ],
+      "ansible_env_vars": [
+        "ANSIBLE_ROLES_PATH={{ user `playbook_roles`}}"
+      ]
+    }
+  ],
+
+  "post-processors": [
+    {
+      "type": "manifest",
+      "output": "{{ user `json_output_path` }}"
+    }
+  ]
+
+}

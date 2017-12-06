@@ -1,0 +1,11 @@
+---
+#Packer
+packer_version: 1.1.2
+packer_base_url: https://releases.hashicorp.com/packer
+packer_arch: amd64
+packer_download_cache: /tmp/packer.zip
+packer_path: /usr/bin
+#Plugins
+plugins_version: 0.4.0
+plugins_url: "https://github.com/rgl/packer-provisioner-windows-update/releases/download/v{{plugins_version}}"
+plugins_download_dir: /tmp
