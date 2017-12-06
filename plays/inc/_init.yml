@@ -1,0 +1,52 @@
+---
+- name: "check parameters"
+  assert:
+    that:
+      - vars[item] is defined
+    msg: "Please supply '{{ item }}' variable"
+  with_items:
+    - "osf_os_type"
+    - "osf_provider"
+    - "osf_src_ami"
+
+- name: "variable cooking"
+  set_fact:
+    work_breadcrumb: "{{ osf_provider }}/{{ osf_os_type }}/{{ osf_src_ami }}"
+
+- name: "{{ work_breadcrumb }} - include ami variables"
+  include_vars: "{{ playbook_dir }}/../{{ work_breadcrumb }}/vars.global.yml"
+
+- name: "{{ work_breadcrumb }} - include accounts variables"
+  include_vars: "{{ playbook_dir }}/../{{ work_breadcrumb }}/vars.share.yml"
+
+- name: "{{ work_breadcrumb }} - check mandatory build variables"
+  assert:
+    that:
+      - vars[item] is defined
+    msg: "Please supply '{{ item }}' vars"
+  with_items:
+    - "build_name"
+    - "ansible_date_time"
+
+- name: "variable cooking"
+  set_fact:
+    osf_target_name: >-
+      {{ build_name }}-{{ ansible_date_time.date }}-{{ ansible_date_time.hour }}.{{ ansible_date_time.minute }}
+    osf_work_dir: >-
+      {{ playbook_dir }}/../target/{{ work_breadcrumb }}/{{ ansible_date_time.date }}-{{ ansible_date_time.hour }}.{{ ansible_date_time.minute }}-{{ 100 | random | to_uuid | hash('md5') }}
+    osf_ref_dir: >-
+      {{ playbook_dir }}/../{{ work_breadcrumb }}
+    osf_packer_build: >-
+      {{ playbook_dir }}/../{{ osf_provider }}/{{ osf_os_type }}.packer-build.json
+
+- name: "variable cooking"
+  set_fact:
+    osf_packer_logs: >-
+      {{ osf_work_dir }}/packer.{{ osf_target_name }}.log
+    osf_packer_output: >-
+      {{ osf_work_dir }}/packer.{{ osf_target_name }}.output.json
+
+- name: "prepare target repository"
+  file:
+    path: "{{ osf_work_dir }}"
+    state: directory

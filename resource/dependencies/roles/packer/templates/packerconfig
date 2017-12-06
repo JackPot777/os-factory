@@ -1,0 +1,5 @@
+{
+  "provisioners": {
+    "windows-update": "{{ packer_path }}/packer-provisioner-windows-update"
+  }
+}

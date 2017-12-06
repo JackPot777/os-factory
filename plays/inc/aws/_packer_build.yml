@@ -1,0 +1,17 @@
+---
+- name: "{{ work_breadcrumb }} - build server image"
+  shell: >-
+    packer build
+    -var 'source_ami_name={{ ami_name }}'
+    -var 'source_ami_owner={{ ami_owner }}'
+    -var 'build_image_name={{ osf_target_name }}'
+    -var 'build_subnet_id={{ aws_subnetID }}'
+    -var 'build_region={{ aws_region }}'
+    -var 'build_default_user={{ build_user }}'
+    -var 'playbook_build={{ osf_ref_dir }}'
+    -var 'playbook_roles={{ osf_work_dir }}/roles'
+    -var 'json_output_path={{ osf_packer_output }}'
+    {{ osf_packer_build }}
+    > {{ osf_packer_logs }} 2>&1
+  retries: 2
+  delay: 60

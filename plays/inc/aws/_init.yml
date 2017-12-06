@@ -1,0 +1,28 @@
+---
+- name: "get subnet id"
+  ec2_metadata_facts:
+  register: instance_metadata
+
+- name: "cherry-pick mac adress"
+  set_fact:
+    instance_mac: "{{ instance_metadata.ansible_facts.ansible_ec2_mac }}"
+
+- name: "forge subnet id fact name"
+  set_fact:
+    subnet_id_varname: >-
+      ansible_ec2_network_interfaces_macs_{{ instance_mac|regex_replace(':','_') }}_subnet_id
+
+- name: "fact global vars"
+  set_fact:
+    aws_subnetID: "{{ instance_metadata.ansible_facts[subnet_id_varname] }}"
+    aws_region: "{{ instance_metadata.ansible_facts.ansible_ec2_placement_region }}"
+
+- debug:
+    msg: >-
+      SUBNET_ID : {{ aws_subnetID }}
+    verbosity: 1
+
+- debug:
+    msg: >-
+      REGION : {{ aws_region }}
+    verbosity: 1

@@ -1,0 +1,11 @@
+---
+- name: "{{ work_breadcrumb }} - clear roles"
+  file:
+    path: "{{ osf_work_dir }}/roles"
+    state: absent
+
+- name: "{{ work_breadcrumb }} - install roles"
+  shell: >-
+    ansible-galaxy install
+    -fr {{ osf_ref_dir }}/requirements.yml
+    -p {{ osf_work_dir }}/roles
