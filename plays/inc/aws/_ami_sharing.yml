@@ -13,5 +13,5 @@
     state: present
     launch_permissions:
       user_ids: ['{{ item }}']
+  when: item is defined and item != None
   with_items: "{{ accounts_to_share_with }}"
-  when: accounts_to_share_with.item is defined
