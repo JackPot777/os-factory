@@ -31,6 +31,7 @@ This project has been created in 2017 by [Maxence Maireaux](https://github.com/F
 ## Contributor
 - [Aurélien Maury (WeScale)](https://github.com/aurelienmaury)
 - [Etienne Deneuve (Cellenza)](https://github.com/EtienneDeneuve)
+- [Xavier Bloumine (Aneo)](https://github.com/BloumineX)
 
 ## Sponsorship
 [![](resource/img/logo_societe_generale.png)](https://www.societegenerale.fr/)&nbsp;&nbsp;&nbsp;
