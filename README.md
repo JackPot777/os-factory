@@ -1,4 +1,4 @@
-# OS Factory
+# OS Factory  [![Build Status](https://travis-ci.org/societe-generale/os-factory.svg?branch=master)](https://travis-ci.org/societe-generale/os-factory)
 OSFactory is an image creation framework (OS) based on Packer and Ansible and is currently used within the Société Générale for the creation of all the images used on the Public Cloud.
 
 ## How to install it
