@@ -11,7 +11,7 @@
 
 - name: "variable cooking"
   set_fact:
-    work_breadcrumb: "{{ osf_provider }}/{{ osf_os_type }}/{{ osf_src_ami }}"
+    work_breadcrumb: "providers/{{ osf_provider }}/{{ osf_os_type }}/{{ osf_src_ami }}"
 
 - name: "{{ work_breadcrumb }} - include ami variables"
   include_vars: "{{ playbook_dir }}/../{{ work_breadcrumb }}/vars.global.yml"
@@ -37,7 +37,7 @@
     osf_ref_dir: >-
       {{ playbook_dir }}/../{{ work_breadcrumb }}
     osf_packer_build: >-
-      {{ playbook_dir }}/../{{ osf_provider }}/{{ osf_os_type }}.packer-build.json
+      {{ playbook_dir }}/../providers/{{ osf_provider }}/{{ osf_os_type }}.packer-build.json
 
 - name: "variable cooking"
   set_fact:

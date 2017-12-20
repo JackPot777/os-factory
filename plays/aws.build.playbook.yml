@@ -16,7 +16,7 @@
   tasks:
     - include_tasks: "{{ include_dir }}/_ansible_dependencies.yml"
     - include_tasks: "{{ include_dir }}/{{ osf_provider }}/_packer_build.yml"
-    - include_tasks: "{{ include_dir }}/_packer_get_id.yml"
+    - include_tasks: "{{ include_dir }}/{{ osf_provider }}/_packer_get_id.yml"
 
   post_tasks:
 
