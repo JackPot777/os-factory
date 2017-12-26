@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Use : os_factory aws linux AMI_001
+# Use : os_factory aws linux IMAGE_001
 set -e
 
 # check params
@@ -10,7 +10,7 @@ fi
 
 provider=$(echo "$1" | tr '[:upper:]' '[:lower:]')
 os_family=$(echo "$2" | tr '[:upper:]' '[:lower:]')
-source_ami=$3
+source_image=$3
 
 CURRENT=$PWD
 cd $(dirname $0)/plays
@@ -18,6 +18,6 @@ cd $(dirname $0)/plays
 ansible-playbook $provider.build.playbook.yml   \
     -e osf_provider=$provider                   \
     -e osf_os_type=$os_family                   \
-    -e osf_src_ami=$source_ami
+    -e osf_src_image=$source_image
 
 cd $CURRENT

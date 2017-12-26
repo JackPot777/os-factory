@@ -7,11 +7,11 @@
   with_items:
     - "osf_os_type"
     - "osf_provider"
-    - "osf_src_ami"
+    - "osf_src_image"
 
 - name: "variable cooking"
   set_fact:
-    work_breadcrumb: "providers/{{ osf_provider }}/{{ osf_os_type }}/{{ osf_src_ami }}"
+    work_breadcrumb: "providers/{{ osf_provider }}/{{ osf_os_type }}/{{ osf_src_image }}"
 
 - name: "{{ work_breadcrumb }} - include ami variables"
   include_vars: "{{ playbook_dir }}/../{{ work_breadcrumb }}/vars.global.yml"
