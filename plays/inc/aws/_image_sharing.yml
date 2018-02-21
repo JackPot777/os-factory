@@ -14,4 +14,4 @@
     launch_permissions:
       user_ids: ['{{ item }}']
   when: item is defined and item != None
-  with_items: "{{ accounts_to_share_with }}"
+  with_items: "{{ aws_accounts_to_share_with }}"
