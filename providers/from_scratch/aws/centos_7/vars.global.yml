@@ -1,0 +1,19 @@
+---
+build_name: CentOS_7_AMI_000
+build_properties:
+  os_name: CentOS
+  os_version: 7
+  origin: OSFactory
+  root_device_type: ebs
+  virtualization_type: hvm
+
+# image_url: "http://centos.crazyfrogs.org/7/isos/x86_64/CentOS-7-x86_64-Minimal-1708.iso"
+image_url: "/Volumes/Data/Media/ISO/CentOS-7-x86_64-Minimal-1708.iso"
+image_checksum: "bba314624956961a2ea31dd460cd860a77911c1e0a56e4820a12b9c5dad363f5"
+os_guest_type: "RedHat_64"
+bucket_import: "wescale-osfactory-upload"
+
+os_type: linux
+ami_name: CentOS Linux 7 x86_64 HVM EBS*
+ami_owner: 410186602215
+build_user: cloud-user

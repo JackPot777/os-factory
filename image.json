@@ -1,0 +1,9 @@
+[
+  {
+    "Description": "test maxence",
+    "Format": "ova",
+    "UserBucket": {
+        "S3Bucket": "wescale-osfactory-upload",
+        "S3Key": "packer-import-1513160015.ova"
+    }
+}]

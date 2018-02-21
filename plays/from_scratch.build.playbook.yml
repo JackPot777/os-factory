@@ -12,17 +12,14 @@
   pre_tasks:
     - include_tasks: "{{ include_dir }}/_init.yml"
     - include_tasks: "{{ include_dir }}/{{ osf_provider }}/_init.yml"
+    - include_tasks: "{{ include_dir }}/_ansible_dependencies.yml"
 
   tasks:
-    - include_tasks: "{{ include_dir }}/_ansible_dependencies.yml"
     - include_tasks: "{{ include_dir }}/{{ osf_provider }}/_packer_build.yml"
-    - include_tasks: "{{ include_dir }}/{{ osf_provider }}/_packer_get_id.yml"
+    - include_tasks: "{{ include_dir }}/{{ osf_provider }}/_get_ami.yml"
 
   post_tasks:
-    - include_tasks: "{{ include_dir }}/{{ osf_provider }}/_ami_sharing.yml"
     - name: "Build success - awesomeness, joy, that sort of feelings"
       debug:
         msg: >-
-          Image build is a success.
-          The AMI and SNAPSHOT is now in your AWS account and shared with bro-accounts.
-          AMI : {{ ami_id }}
+          Image build is a success. Your AMI : {{ ami_id }}

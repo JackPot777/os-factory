@@ -1,0 +1,13 @@
+---
+build_name: Windows_2012_AMI_001
+build_properties:
+  os_name: Windows
+  os_version: 2012
+  origin: CoE
+  root_device_type: ebs
+  virtualization_type: hvm
+
+os_type: windows
+ami_name:  Windows_Server-2012-R2_RTM-English-64Bit-Base-*
+ami_owner: 801119661308
+build_user: Administrator

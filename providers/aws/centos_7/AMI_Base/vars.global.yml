@@ -1,0 +1,13 @@
+---
+build_name: CentOS_7_AMI_001
+build_properties:
+  os_name: CentOS
+  os_version: 7
+  origin: OSFactory
+  root_device_type: ebs
+  virtualization_type: hvm
+
+os_type: linux
+ami_name: CentOS Linux 7 x86_64 HVM EBS*
+ami_owner: 410186602215
+build_user: centos

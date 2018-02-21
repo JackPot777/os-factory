@@ -1,0 +1,27 @@
+---
+- name: "variable cooking"
+  set_fact:
+    osf_packer_build: >-
+      {{ playbook_dir }}/../providers/{{ osf_provider }}/{{ osf_os_type }}.{{ osf_src_ami }}.packer-build.json
+    osf_packer_script: >-
+      {{ playbook_dir }}/../providers/{{ osf_provider }}/files
+    # aws_region: "{{ instance_metadata.ansible_facts.ansible_ec2_placement_region }}"
+    aws_region: "eu-west-1"
+
+- name: "create dir for script packer"
+  file:
+    path: "{{ osf_work_dir }}/script/"
+    state: directory
+    mode: 0755
+
+- name: "template for kickstart"
+  template:
+    src: "{{ osf_packer_script }}/{{ osf_src_ami }}.ks.cfg"
+    dest: "{{ osf_work_dir }}/script/ks.cfg"
+  when: osf_src_ami == 'centos_7'
+
+- name: "template for windows"
+  template:
+    src: "{{ osf_packer_script }}/{{ osf_src_ami }}.ks.xml"
+    dest: "{{ osf_work_dir }}/script/ks.xml"
+  when: osf_src_ami == 'windows_2012R2'
