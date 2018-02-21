@@ -8,6 +8,7 @@ build_properties:
   virtualization_type: hvm
 
 os_type: linux
-ami_name: ubuntu/images/hvm-ssd/ubuntu-xenial-16.04-amd64-server-*
-ami_owner: 099720109477
-build_user: ubuntu
+aws:
+  ami_name: ubuntu/images/hvm-ssd/ubuntu-xenial-16.04-amd64-server-*
+  ami_owner: 099720109477
+  build_user: ubuntu
