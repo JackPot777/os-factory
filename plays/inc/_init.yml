@@ -13,7 +13,7 @@
   set_fact:
     work_breadcrumb: "images/{{ osf_os_type }}/{{ osf_src_image }}"
 
-- name: "{{ work_breadcrumb }} - include ami variables"
+- name: "{{ work_breadcrumb }} - include image variables"
   include_vars: "{{ playbook_dir }}/../{{ work_breadcrumb }}/vars.global.yml"
 
 - name: "{{ work_breadcrumb }} - include accounts variables"
