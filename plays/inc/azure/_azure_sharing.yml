@@ -1,0 +1,43 @@
+---
+- name: Get token from azure
+  uri:
+    url: "http://localhost:50342/oauth2/token"
+    return_content: yes
+    method: POST
+    body: "resource=https://management.azure.com/"
+    headers:
+      Metadata: "true"
+  register: auth_token_2
+
+
+- name: "create request"
+  set_fact:
+    body: 
+      name: {{ image_to_change }}
+      location: "{{ azure_region }}"
+      properties:
+        # osType: Linux
+        creationData:
+          createOption: Copy
+          sourceResourceId: "{{ami_id}}"
+
+- name: "Show Debug"
+  debug:
+    msg: "{{ body | to_nice_json }}"
+
+- name: "create disk from image"
+  uri:
+    url: "https://management.azure.com/subscriptions/{{ azure_subscription_id }}/resourceGroups/{{ azure_ressource_group }}/providers/Microsoft.Compute/disks/{{ image_id }}?api-version=2017-03-30"
+    return_content: yes
+    method: PUT
+    body: "{{ body }}"
+    body_format: json
+    headers:
+      Content-Type: application/json
+      Metadata: true
+      Authorization: "Bearer {{ auth_token_2.json.access_token }}"
+  register: virtual_managed_disk 
+
+- name: "Show Debug"
+  debug:
+    msg: "{{ virtual_managed_disk | to_nice_json }}"
