@@ -8,6 +8,7 @@ build_properties:
   virtualization_type: hvm
 
 os_type: windows
-ami_name:  Windows_Server-2012-R2_RTM-English-64Bit-Base-*
-ami_owner: 801119661308
-build_user: Administrator
+aws:
+  ami_name:  Windows_Server-2012-R2_RTM-English-64Bit-Base-*
+  ami_owner: 801119661308
+  build_user: Administrator

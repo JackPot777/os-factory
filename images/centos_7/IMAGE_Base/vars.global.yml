@@ -8,6 +8,9 @@ build_properties:
   virtualization_type: hvm
 
 os_type: linux
-ami_name: CentOS Linux 7 x86_64 HVM EBS*
-ami_owner: 410186602215
-build_user: centos
+
+aws:
+  ami_name: CentOS Linux 7 x86_64 HVM EBS*
+  ami_owner: 410186602215
+  build_user: centos
+azure:
