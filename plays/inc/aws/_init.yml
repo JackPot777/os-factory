@@ -26,3 +26,12 @@
     msg: >-
       REGION : {{ aws_region }}
     verbosity: 1
+
+- name: "create packer config"
+  template:
+    src: "{{ osf_template_dir }}"
+    dest: "{{ osf_packer_build }}"
+    block_start_string: "(%"
+    block_end_string: "%)"
+    variable_start_string: "(("
+    variable_end_string: "))"
