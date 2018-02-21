@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Use : ./os_factory aws linux AMI_001
-# Use : ./os_factory from_scratch aws centos_7
+# Use : ./os_factory from_scratch aws centos_7 (alpha)
 set -e
 
 # check params
