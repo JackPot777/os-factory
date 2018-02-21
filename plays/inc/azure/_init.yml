@@ -53,7 +53,7 @@
       Content-Type: "application/json"
       Metadata: "true"
       Authorization: "Bearer {{ auth_token.json.access_token }}"
-  register: tenant_id 
+  register: tenant_id_resp 
 
 - name: "debug show tenant id"
   set_fact: tenant_id_resp="{{ tenant_id.content | from_json  }}"
