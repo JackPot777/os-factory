@@ -3,8 +3,6 @@
     "arm_client_id": "{{ env `arm_client_id`}}",
     "arm_client_secret": "{{ env `arm_client_secret`}}",
     "build_provider": "(( osf_provider ))",
-    "source_ami_name": "(( ami_name ))",
-    "source_ami_owner": "(( ami_owner ))",
     "arm_rg_name": "(( azure_ressource_group ))",
     "arm_sub_id": "(( azure_subscription_id ))",
     "arm_tenant_id": "(( tenant_id ))",
@@ -15,9 +13,14 @@
     "build_image_name": "(( osf_target_name )).vhd",
     "build_vm_size": "Standard_DS3_V2",
     "build_region": "(( azure_region ))",
-    "build_default_user": "(( build_user ))",
+    "build_default_user": "(( azure.build_user ))",
+    "build_os_type": "(( os_type ))",
+    "build_image_publisher": "(( azure.image_publisher ))",
+    "build_image_offer": "(( azure.image_offer ))",
+    "build_image_sku": "(( azure.image_sku ))",
     "temp_resource_group_name": "rg-temp-osf-(( 99999999 |random(1, 10) ))",
-    "temp_compute_name": "vm-temp-osf-(( 99999999 |random(1, 10) ))",
+    "temp_compute_name": "vm-osf-(( 99999999 |random(1, 10) ))",
+    "temp_storage_account": "(( azure.storage_account_name ))",
     "json_output_path": "(( osf_packer_output ))",
     "playbook_build": "(( osf_ref_dir ))",
     "playbook_files": "(( osf_files_dir ))",
@@ -30,39 +33,42 @@
       "client_secret": "{{ user `arm_client_secret`}}",
       "subscription_id": "{{ user `arm_sub_id`}}",
       "tenant_id": "{{ user `arm_tenant_id`}}",
-      "capture_container_name": "linux",
+      "capture_container_name": "(( osf_os_type | replace("_","") ))",
       "capture_name_prefix": "temp",
       "resource_group_name": "{{user `build_rg_image_name`}}",
-      "storage_account": "tempsto01",
+      "storage_account": "{{ user `temp_storage_account` }}",
       "temp_resource_group_name": "{{ user `temp_resource_group_name`}}",
       "temp_compute_name": "{{ user `temp_compute_name`}}",
       "virtual_network_name": "{{ user `build_vnet_name` }}",
       "virtual_network_resource_group_name": "{{ user `build_vnet_rg`}}",
       "virtual_network_subnet_name": "{{ user `build_snet_name`}}",
-      "os_type": "Linux",
-      "image_publisher": "Canonical",
-      "image_offer": "UbuntuServer",
-      "image_sku": "16.04-LTS",
+      "os_type": "{{ user `build_os_type` }}",
+      "image_publisher": "{{ user `build_image_publisher` }}",
+      "image_offer": "{{ user `build_image_offer` }}",
+      "image_sku": "{{ user `build_image_sku` }}",
       "azure_tags": {
         "Name": "{{ user `build_image_name` }}",
         "Release": "{{ timestamp }}"
       },
       "location": "{{ user `build_region`}}",
       "vm_size": "{{ user `build_vm_size`}}",
-      "user_data_file": "{{ user `playbook_files`}}/setup_python.txt",
-      (% if osf_os_type == "windows" %)
+      
+      (% if os_type == "windows" %)
+      "object_id": "(( objectid ))",
       "communicator": "winrm",
-      "winrm_username": "{{ user `build_default_user` }}",
-      "user_data_file": "{{ user `playbook_files`}}/setup_winrm.txt",
+      "winrm_use_ssl": "true",
+      "winrm_insecure": "true",
+      "winrm_timeout": "3m",
+      "winrm_username": "{{ user `build_default_user` }}"
+      
       (% else %)
       "ssh_username": "{{ user `build_default_user` }}",
-      "ssh_private_ip": true,
       "ssh_timeout": "30m"
       (% endif %)
     }
   ],
   "provisioners": [
-    (% if osf_os_type == "windows" %)
+    (% if os_type == "windows" %)
     {
       "type": "windows-update"
     },
@@ -77,12 +83,6 @@
       "ansible_env_vars": [
         "ANSIBLE_ROLES_PATH={{ user `playbook_roles`}}"
       ]
-    }
-  ],
-  "post-processors": [
-    {
-      "type": "manifest",
-      "output": "{{ user `json_output_path` }}"
     }
   ]
 }

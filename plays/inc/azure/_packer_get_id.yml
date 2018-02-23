@@ -1,8 +1,15 @@
 ---
+- name: "{{ work_breadcrumb }} - extract built image id blob id"
+  set_fact:
+    images_id_blob: "https://{{ azure_to_share_with.storage_account }}.blob.core.windows.net/{{ osf_os_type | replace("_","") }}/{{ osf_target_name }}.vhd"
+
 - name: "{{ work_breadcrumb }} - extract built ami id"
   set_fact:
-    ami_id: "/subscriptions/{{ azure_subscription_id }}/resourceGroups/{{ azure_ressource_group}}/providers/Microsoft.Compute/images/{{ osf_target_name }}"
+    images_id_images: "subscriptions/{{ azure_subscription_id }}/resourceGroups/{{ azure_to_share_with.resource_group }}/providers/Microsoft.Compute/images/{{ osf_target_name }}"
 
 - debug:
-    msg: "BUILT AMI ID {{ ami_id }}"
+    msg: "BUILT IMAGE BLOB ID {{ images_id_blob }}"
+    verbosity: 1
+- debug:
+    msg: "BUILT Virtual Machine image {{ images_id_images }}"
     verbosity: 1

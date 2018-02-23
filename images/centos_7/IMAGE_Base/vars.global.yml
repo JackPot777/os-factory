@@ -13,4 +13,10 @@ aws:
   ami_name: CentOS Linux 7 x86_64 HVM EBS*
   ami_owner: 410186602215
   build_user: centos
+
 azure:
+  image_publisher: OpenLogic
+  image_offer: Centos
+  image_sku: 7.3
+  storage_account_name: sgosfactory
+  build_user: centos

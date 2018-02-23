@@ -1,5 +1,5 @@
 ---
-- name: "get metadata"
+- name: "Azure: Init -> get metadata"
   uri:
     url: "http://169.254.169.254/metadata/instance/?api-version=2017-08-01"
     return_content: yes
@@ -7,14 +7,7 @@
       Metadata: "true"
   register: azure_metadata
 
-
-# - name: "debug metadata"
-#   debug:
-#     msg: "{{ azure_metadata | to_nice_json }}"
-#   verbosity: 1
-
-
-- name: "fact global for azure"
+- name: "Azure: Init -> set fact global for azure"
   set_fact:
     azure_region: "{{ azure_metadata.json.compute.location }}"
     azure_ressource_group: "{{ azure_metadata.json.compute.resourceGroupName }}"
@@ -22,7 +15,7 @@
     azure_vm_prefix: "{{ azure_metadata.json.network.interface[0].ipv4.subnet[0].prefix }}"
     azure_vm_address: "{{ azure_metadata.json.network.interface[0].ipv4.subnet[0].address }}"
 
-- name: "get token"
+- name: "Azure: Init -> get Managed Identity Service token"
   uri:
     url: "http://localhost:50342/oauth2/token"
     return_content: yes
@@ -32,10 +25,7 @@
       Metadata: "true"
   register: auth_token
 
-# - debug:
-#     msg: "{{ auth_token.json.access_token }}"
-
-- name: "get virtual network from management.azure.com"
+- name: "Azure: Init -> Get virtual network from management.azure.com"
   uri:
     url: "https://management.azure.com/subscriptions/{{ azure_subscription_id }}/resourceGroups/{{ azure_ressource_group }}/providers/Microsoft.Network/virtualNetworks?api-version=2017-10-01"
     return_content: yes
@@ -45,7 +35,7 @@
       Authorization: "Bearer {{ auth_token.json.access_token }}"
   register: virtual_network 
 
-- name: "get tenant id from management.azure.com"
+- name: "Azure: Init -> Get tenant id from management.azure.com"
   uri:
     url: https://management.azure.com/tenants?api-version=2016-06-01
     return_content: yes
@@ -55,78 +45,40 @@
       Authorization: "Bearer {{ auth_token.json.access_token }}"
   register: tenant_id_resp 
 
-- name: "debug show tenant id"
-  set_fact: tenant_id_resp="{{ tenant_id.content | from_json  }}"
+- name: "Azure: Init -> Intermediate Fact for tenant id"
+  set_fact: tenant_id_resp_cont="{{ tenant_id_resp.content | from_json  }}"
 
-- name: "tenant_id"
-  set_fact: tenant_id="{{ tenant_id_resp.value[0].tenantId }}"
+- name: "Azure: Init -> set fact tenant_id"
+  set_fact: tenant_id="{{ tenant_id_resp_cont.value[0].tenantId }}"
 
-# - name: "Debug Tenant ID"
-#   debug:
-#     msg: "{{ tenant_id }}"
-
-- name: "get virtual network content to json"
+- name: "Azure: Init -> Intermediate fact for virtual network content to json"
   set_fact: vnet="{{ virtual_network.content | from_json }}"
 
-# - name: "debug show virtual network"
-#   debug:
-#     msg: "{{ vnet | to_nice_json }}"
-
-- name: "virtual network"
+- name: "Azure: Init -> Set fact for virtual network name"
   set_fact: azure_vnet_name="{{ vnet.value[0].name }}"
 
-- name: "virtual subnets"
+- name: "Azure: Init -> Intermediate fact for virtual subnets"
   set_fact: subnets="{{ vnet.value[0].properties.subnets }}"
 
-# - name: "debug show virtual network"
-#   debug:
-#     msg: "{{ subnets | to_nice_json }}"
-
-- name: "concat var to get subnet prefix"
+- name: "Azure: Init -> concat var to get subnet prefix for lookup"
   set_fact: look="{{ azure_vm_address }}/{{ azure_vm_prefix }}"
 
-# - name: "debug subnet prefix"
-#   debug:
-#     msg: "{{ look }}"
-
-- name: "create subnet query request"
+- name: "Azure: Init -> create subnet query request"
   set_fact: subnet_query="[?(@.properties.addressPrefix=='{{ look }}')].name"
 
-# - name: "debug subnet query"
-#   debug:
-#     msg: "{{ subnet_query }}"
-
-- name: "try to find the subnet"
-  debug:
-    msg: "{{ item }}"
-  with_items: 
-    -  "{{ subnets|json_query(subnet_query) }}"
-
-- name: "Set temp subnet fact for remove array" 
+- name: "Azure: Init -> Set temp subnet fact for remove array" 
   set_fact:
     azure_subnet_name_tmp: "{{ subnets|json_query(subnet_query) }}"
 
-- name: "Set subnet fact"
+- name: "Azure: Init -> Set subnet fact"
   set_fact:
     azure_subnet_name: "{{ azure_subnet_name_tmp[0] }}"
               
-# - name: "subnet id"
-#   debug:
-#     msg: "{{ azure_subnet_name }}"
-
-- name: "set fact azure_rm_storageaccount"
+- name: "Azure: Init -> set fact for body request"
   set_fact:
-    azure_storage_account: "tempsto01"
+    body: {"name":"{{ azure.storage_account_name }}","type":"Microsoft.Storage/storageAccounts"}
 
-- name: "set fact for body request"
-  set_fact:
-    body: {"name":"{{ azure_storage_account }}","type":"Microsoft.Storage/storageAccounts"}
-
-- name: "debug body"
-  debug:
-    msg: "{{ body | to_json }}"
-
-- name: "get storage accounts from management.azure.com"
+- name: "Azure: Init -> get storage accounts from management.azure.com"
   uri:
     url: "https://management.azure.com/subscriptions/{{ azure_subscription_id }}/providers/Microsoft.Storage/checkNameAvailability?api-version=2017-06-01"
     return_content: yes
@@ -139,17 +91,14 @@
       Authorization: "Bearer {{ auth_token.json.access_token }}"
   register: azure_storage_exist 
 
-- name: "azure_storage exist ?"
-  debug:
-    msg: "Storage name availaible : {{ azure_storage_exist.json.nameAvailable }}"
-
-- name: "Create fact for storage request"
+- name: "Azure: Init -> Create fact for storage request"
   set_fact:
     body_storage: {"sku": {"name": "Standard_LRS"},"kind": "Storage","location": "westeurope"} 
-
-- name: "create storage accounts from management.azure.com"
+  when: ( azure_storage_exist.json.nameAvailable == True)
+  
+- name: "Azure: Init -> create storage accounts from management.azure.com"
   uri:
-    url: "https://management.azure.com/subscriptions/{{ azure_subscription_id }}/resourceGroups/{{ azure_ressource_group }}/providers/Microsoft.Storage/storageAccounts/{{ azure_storage_account }}?api-version=2017-06-01"
+    url: "https://management.azure.com/subscriptions/{{ azure_subscription_id }}/resourceGroups/{{ azure_ressource_group }}/providers/Microsoft.Storage/storageAccounts/{{ azure.storage_account_name }}?api-version=2017-06-01"
     return_content: yes
     method: PUT
     body: "{{ body_storage | to_json }}"
@@ -162,34 +111,32 @@
   register: azure_storage 
   when: ( azure_storage_exist.json.nameAvailable == True)
 
-# - name: "azure_storage exist ?"
-#   debug:
-#     msg: "Storage Exist : {{ azure_storage | to_nice_json }}"
+- name: "Login to Azure"
+  shell: |
+    az login \
+        --service-principal \
+        -u "{{ lookup('env','arm_client_id') }}" \
+        -p "{{ lookup('env','arm_client_secret') }}" \
+        --tenant "{{ tenant_id }}"
 
-# TODO: Add a way to catch multiple subnet...    
-# - debug: 
-#     msg: "{{ vnet.value[0].properties.subnets[0].id }}"
+- name: "Get SPN objectid"
+  shell: |
+     az ad sp show --id {{ lookup('env','arm_client_id') }} --query 'objectId' -o tsv
+  register: objectid_out
 
-# - name: "fact global vars"
-#   set_fact:
-#     aws_subnetID: "{{ aws_subnetID_reg.content }}"
-#     aws_region: "{{ instance_metadata.ansible_facts.ansible_ec2_placement_region }}"
-#
-# 
-# 
-#
-# - debug:
-#     msg: "{{ aws_region }}"
-# - name: "azure test nic"
-#   azure_rm_networkinterface_facts:
-#   register: metadata_nic
+- debug:
+    msg: "{{ objectid_out.stdout  }}"
+  verbosity: 1
 
-# - name: "debug test nic"
-#   debug
-#     msg: "{{ metadata_nic }}"
+- name: "Set SPN Objectid Fact"
+  set_fact:
+    objectid: "{{ objectid_out.stdout }}"
 
-
-#   response=$(curl http://localhost:50342/oauth2/token --data "resource=https://management.azure.com/" -H Metadata:true -s)
-#   access_token=$(echo $response | python -c 'import sys, json; print (json.load(sys.stdin)["access_token"])')
-#   echo The MSI access token is $access_token
-#   curl -H "Authorization: Bearer ${access_token}" "https://management.azure.com/subscriptions/XXXXXXXXXXXXXX/resourceGroups/XXxOSFactory/providers/Microsoft.Network/virtualNetworks?api-version=2017-10-01"
+- name: "Azure: Init -> create packer config"
+  template:
+    src: "{{ osf_template_dir }}"
+    dest: "{{ osf_packer_build }}"
+    block_start_string: "(%"
+    block_end_string: "%)"
+    variable_start_string: "(("
+    variable_end_string: "))"

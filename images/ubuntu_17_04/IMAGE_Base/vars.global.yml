@@ -12,3 +12,10 @@ aws:
   ami_name: ubuntu/images/hvm-ssd/ubuntu-zesty-17.04-amd64-server-*
   ami_owner: 099720109477
   build_user: ubuntu
+
+azure:
+  image_publisher: Canonical
+  image_offer: UbuntuServer
+  image_sku: 17.10
+  storage_account_name: sgosfactory
+  build_user: ubuntu
