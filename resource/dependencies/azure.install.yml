@@ -1,0 +1,33 @@
+- hosts: all
+  become: true
+  roles:
+    - system-update
+    - packer
+  tasks:
+    - name: "Add azure repos"
+      apt_repository:
+        repo: "deb [arch=amd64] https://packages.microsoft.com/repos/azure-cli/ {{ ansible_distribution_release }} main"
+        filename: azure-cli.list
+        state: present
+
+    - name: "Add key for azure repos"
+      apt_key:
+        keyserver: packages.microsoft.com
+        id: 52E16F86FEE04B979B07E28DB02C46DF417A0893
+
+    - name: "Install package"
+      apt:
+        name: python-pip
+        update_cache: yes
+      with_items:
+        - python-pip
+        - apt-transport-https
+        - dirmngr
+        - azure-cli
+
+    - name: "Install deps package"
+      pip:
+        name: "{{ item }}"
+      with_items:
+        - ansible-lint
+      
