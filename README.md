@@ -1,9 +1,20 @@
+<!-- TOC -->
+
+- [OS Factory  [![Build Status](https://travis-ci.org/societe-generale/os-factory.svg?branch=master)](https://travis-ci.org/societe-generale/os-factory)](#os-factory--build-statushttpstravis-ciorgsociete-generaleos-factorysvgbranchmasterhttpstravis-ciorgsociete-generaleos-factory)
+    - [How to install it](#how-to-install-it)
+        - [AWS](#aws)
+            - [Dependencies](#dependencies)
+            - [For infrastructure](#for-infrastructure)
+        - [For project](#for-project)
+    - [License](#license)
+    - [Author Information](#author-information)
+    - [Contributor](#contributor)
+    - [Sponsorship](#sponsorship)
+
+<!-- /TOC -->
+
 # OS Factory  [![Build Status](https://travis-ci.org/societe-generale/os-factory.svg?branch=master)](https://travis-ci.org/societe-generale/os-factory)
 OSFactory is an image creation framework (OS) based on Packer and Ansible and is currently used within the Société Générale for the creation of all the images used on the Public Cloud.
-
-
-* auto-gen TOC:
-{:toc}
 
 ## How to install it
 
