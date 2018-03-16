@@ -1,11 +1,11 @@
 - [OS Factory](#os-factory)
     - [How to install it](#how-to-install-it)
         - [AWS](#aws)
-            - [How to install it for AWS](#how-to-install-it-for-aws)
+            - [Pre-requistes installation for AWS](#how-to-install-it-for-aws)
             - [Dependencies for AWS](#dependencies-for-aws)
             - [Infrastructure for AWS](#infrastructure-for-aws)
         - [Azure](#azure)
-            - [How to install it for Azure](#how-to-install-it-for-azure)
+            - [Pre-requistes installation for Azure](#how-to-install-it-for-azure)
             - [Dependencies for Azure](#dependencies-for-azure)
             - [Infrastructure for Azure](#infrastructure-for-azure)
     - [All dependencies For project](#all-dependencies-for-project)
@@ -21,6 +21,8 @@ OSFactory is an image creation framework (OS) based on Packer and Ansible and is
 ## How to install it
 
 ### AWS
+
+#### Pre-requistes installation for AWS
 Please run this command to install all dependencies.
 
 ``` ansible-playbook resource/dependencies/aws.install.yml -i "MY_IP," ```
@@ -34,7 +36,7 @@ To create images on AWS, the EC2 instance must be created in the same location (
 
 ### Azure
 
-#### How to install it for Azure
+#### Pre-requistes installation for Azure
 
 Please run this command to install all dependencies.
 
