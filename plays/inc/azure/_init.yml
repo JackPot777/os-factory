@@ -74,14 +74,9 @@
   set_fact:
     azure_subnet_name: "{{ azure_subnet_name_tmp[0] }}"
               
-
 - name: "Azure: Init -> set fact for body request"
   set_fact:
     body: {"name":"{{ azure.storage_account_name }}","type":"Microsoft.Storage/storageAccounts"}
-
-# - name: "Azure: Init -> debug body"
-#   debug:
-#     msg: "{{ body | to_json }}"
 
 - name: "Azure: Init -> get storage accounts from management.azure.com"
   uri:
@@ -95,10 +90,6 @@
       Metadata: "true"
       Authorization: "Bearer {{ auth_token.json.access_token }}"
   register: azure_storage_exist 
-
-# - name: "Azure: Init -> azure_storage exist ?"
-#   debug:
-#     msg: "Storage name availaible : {{ azure_storage_exist.json.nameAvailable }}"
 
 - name: "Azure: Init -> Create fact for storage request"
   set_fact:
@@ -119,6 +110,27 @@
       Authorization: "Bearer {{ auth_token.json.access_token }}"
   register: azure_storage 
   when: ( azure_storage_exist.json.nameAvailable == True)
+
+- name: "Login to Azure"
+  shell: |
+    az login \
+        --service-principal \
+        -u "{{ lookup('env','arm_client_id') }}" \
+        -p "{{ lookup('env','arm_client_secret') }}" \
+        --tenant "{{ tenant_id }}"
+
+- name: "Get SPN objectid"
+  shell: |
+     az ad sp show --id {{ lookup('env','arm_client_id') }} --query 'objectId' -o tsv
+  register: objectid_out
+
+- debug:
+    msg: "{{ objectid_out.stdout  }}"
+  verbosity: 1
+
+- name: "Set SPN Objectid Fact"
+  set_fact:
+    objectid: "{{ objectid_out.stdout }}"
 
 - name: "Azure: Init -> create packer config"
   template:

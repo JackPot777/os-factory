@@ -1,14 +1,4 @@
 ---
-- name: Get token from azure
-  uri:
-    url: "http://localhost:50342/oauth2/token"
-    return_content: yes
-    method: POST
-    body: "resource=https://management.azure.com/"
-    headers:
-      Metadata: "true"
-  register: auth_token_2
-
 - name: "Login to Azure"
   shell: |
     az login \
@@ -69,11 +59,11 @@
   set_fact:
     dst_key_storage_tmp: "{{ dst_key_list.stdout }}" 
 
-- name: "Extract data from fact for Destination storage request"
+- name: "Misc: Extract data from fact for Destination storage request"
   set_fact:
     dst_key_storage: "{{  dst_key_storage_tmp[0].value }}" 
 
-- name: "Get Destination Storage SAS Token"
+- name: "Destination: Get Storage SAS Token"
   shell: |
     az storage account generate-sas --expiry 2018-06-01'T'12:00'Z' \
     --permissions aclrpuw \
@@ -84,22 +74,22 @@
     -o tsv
   register: dst_sas_token_raw
 
-- name: "Create fact for Destination storage request"
+- name: "Destination: Create fact from storage sas token"
   set_fact:
     dst_sas_token_tmp: "{{ dst_sas_token_raw.stdout }}" 
 
-- name: "create container in Destination Storage"
+- name: "Destination: Create container"
   shell: |
     az storage container create \
     -n "{{ osf_os_type | replace("_","") }}" \
     --account-name "{{ azure_to_share_with.storage_account }}" \
     --sas-token "{{ dst_sas_token_tmp }}"
 
-- name: "Set azure subscription for source"
+- name: "Misc: Set azure subscription as source"
   shell: |
     az account set --subscription "{{ azure_subscription_id }}"
 
-- name: "Start blob Copy"
+- name: "Misc: Start blob Copy"
   shell: |
     az storage blob copy start \
     --destination-blob "{{ osf_target_name }}.vhd" \
@@ -111,12 +101,12 @@
     --sas-token "{{ dst_sas_token_tmp }}" \
     --source-sas "{{ src_sas_token_tmp }}"
 
-- name: "Set azure account for destination"
+- name: "Misc: Set azure account as destination"
   shell: |
     az account set \
       --subscription "{{ azure_to_share_with.subscription_id }}" 
 
-- name: "Get status of copy account for destination"
+- name: "Misc: Get status of copy"
   shell: |
     az storage blob show \
     --name "{{ osf_target_name }}.vhd" \
@@ -127,12 +117,7 @@
   until: copy_storage_progress.stdout != "pending"
   retries: 60
 
-- name: "Debug Destination storage key"
-  debug:
-    msg: "{{ copy_storage_progress.stdout | to_nice_json }}" 
-
-
-- name: "Get Storage Key"
+- name: "Destination: Convert blob to managed disk"
   shell: |
     az disk create \
     -g "{{ azure_to_share_with.resource_group }}" \
@@ -140,13 +125,13 @@
     --source "https://{{ azure_to_share_with.storage_account }}.blob.core.windows.net/{{ osf_os_type | replace("_","") }}/{{ osf_target_name }}.vhd"
   retries: 60
 
-- name: "Get Storage Key"
+- name: "Destination: Create image from managed disk"
   shell: |
     az image create -g "{{ azure_to_share_with.resource_group }}" \
      -n "{{ osf_target_name }}" --source "{{ osf_target_name }}" \
      --os-type {{ os_type }}
 
-- name: "Delete temp managed disk"
+- name: "Destination: Delete temp managed disk"
   shell: |
     az disk delete \
     -g "{{ azure_to_share_with.resource_group }}" \

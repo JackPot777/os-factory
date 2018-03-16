@@ -12,3 +12,10 @@ aws:
   ami_name: PGi Microsoft Windows Server 2012 R2 Base*
   ami_owner: 670524061096
   build_user: administrator
+
+azure:
+  image_publisher: MicrosoftWindowsServer
+  image_offer: WindowsServer
+  image_sku: 2016-Datacenter-smalldisk
+  storage_account_name: sgosfactory
+  build_user: Administrator

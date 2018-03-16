@@ -19,7 +19,7 @@
     "build_image_offer": "(( azure.image_offer ))",
     "build_image_sku": "(( azure.image_sku ))",
     "temp_resource_group_name": "rg-temp-osf-(( 99999999 |random(1, 10) ))",
-    "temp_compute_name": "vm-temp-osf-(( 99999999 |random(1, 10) ))",
+    "temp_compute_name": "vm-osf-(( 99999999 |random(1, 10) ))",
     "temp_storage_account": "(( azure.storage_account_name ))",
     "json_output_path": "(( osf_packer_output ))",
     "playbook_build": "(( osf_ref_dir ))",
@@ -53,9 +53,13 @@
       "location": "{{ user `build_region`}}",
       "vm_size": "{{ user `build_vm_size`}}",
       
-      (% if osf_os_type == "windows" %)
+      (% if os_type == "windows" %)
+      "object_id": "(( objectid ))",
       "communicator": "winrm",
-      "winrm_username": "{{ user `build_default_user` }}",
+      "winrm_use_ssl": "true",
+      "winrm_insecure": "true",
+      "winrm_timeout": "3m",
+      "winrm_username": "{{ user `build_default_user` }}"
       
       (% else %)
       "ssh_username": "{{ user `build_default_user` }}",
@@ -64,7 +68,7 @@
     }
   ],
   "provisioners": [
-    (% if osf_os_type == "windows" %)
+    (% if os_type == "windows" %)
     {
       "type": "windows-update"
     },

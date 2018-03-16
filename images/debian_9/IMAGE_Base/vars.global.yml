@@ -12,3 +12,10 @@ aws:
   ami_name: debian-stretch-hvm-x86_64-gp2-*
   ami_owner: 379101102735
   build_user: admin
+
+azure:
+  image_publisher: credativ
+  image_offer: Debian
+  image_sku: 9
+  storage_account_name: sgosfactory
+  build_user: admin
