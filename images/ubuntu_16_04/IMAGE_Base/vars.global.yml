@@ -12,3 +12,11 @@ aws:
   ami_name: ubuntu/images/hvm-ssd/ubuntu-xenial-16.04-amd64-server-*
   ami_owner: 099720109477
   build_user: ubuntu
+
+azure:
+  image_publisher: Canonical
+  image_offer: UbuntuServer
+  image_sku: 16.04-LTS
+  storage_account_name: sgosfactory
+  build_user: ubuntu
+  #if storage doesn't exist it will be created

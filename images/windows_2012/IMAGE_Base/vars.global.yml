@@ -12,3 +12,10 @@ aws:
   ami_name:  Windows_Server-2012-R2_RTM-English-64Bit-Base-*
   ami_owner: 801119661308
   build_user: Administrator
+
+azure:
+  image_publisher: MicrosoftWindowsServer
+  image_offer: WindowsServer
+  image_sku: 2012-R2-Datacenter-smalldisk
+  storage_account_name: sgosfactory
+  build_user: Administrator

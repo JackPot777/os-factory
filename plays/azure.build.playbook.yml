@@ -1,0 +1,29 @@
+---
+#
+##
+### Written by Maxence Maireaux (maxence.maireaux@wescale.fr)
+### Edited by Etienne Deneuve (etienne.deneuve@cellenza.com)
+#
+- hosts: localhost
+  become: no
+
+  pre_tasks:
+    - include_tasks: "{{ playbook_dir }}/inc/_init.yml"
+    - include_tasks: "{{ playbook_dir }}/inc/{{osf_provider}}/_init.yml"
+
+  tasks:
+    - include_tasks: "{{ playbook_dir }}/inc/_ansible_dependencies.yml"
+    - include_tasks: "{{ playbook_dir }}/inc/{{ osf_provider }}/_packer_build.yml"
+
+  post_tasks:
+    - include_tasks: "{{ playbook_dir }}/inc/{{ osf_provider }}/_azure_sharing.yml"
+    - include_tasks: "{{ playbook_dir }}/inc/{{ osf_provider }}/_packer_get_id.yml"
+
+
+    - name: Build success - awesomeness, joy, that sort of feelings
+      debug:
+        msg: >-
+          Image build is a success.
+          The Image is now in your Azure account.
+          Blob : {{ images_id_blob }}
+          Images : {{ images_id_images }}

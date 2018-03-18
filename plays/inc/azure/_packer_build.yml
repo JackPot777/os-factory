@@ -1,0 +1,33 @@
+---
+- name: "{{ work_breadcrumb }} - validate server image"
+  shell: >-
+    packer validate
+    {{ osf_packer_build }}
+    > {{ osf_packer_logs }} 2>&1
+  retries: 2
+  delay: 60
+
+- name: "{{ work_breadcrumb }} - build server image"
+  shell: >-
+    packer -machine-readable build
+    {{ osf_packer_build }}
+    > {{ osf_packer_logs }} 2>&1
+  retries: 2
+  delay: 60
+
+- name: "Get image vhd name from packer output"
+  shell: >-
+    grep OSDiskUri: {{ osf_packer_logs }} | grep -oP 'http.?://\S+' | grep -oP temp-osDisk.*.vhd | uniq   
+  register: temp_vhd_filename
+
+- name: "Debug Packer Output"
+  debug:
+    msg: "{{ temp_vhd_filename.stdout }}"
+    verbosity: 1
+- name: "Set vhd fact"
+  set_fact: vhd_fact={{ temp_vhd_filename.stdout }}
+
+- name: "Debug Packer Output"
+  debug:
+    msg: "{{ vhd_fact }}"
+    verbosity: 1
