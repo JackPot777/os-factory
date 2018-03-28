@@ -1,0 +1,22 @@
+---
+build_name: Ubuntu_16_04_AMI_001
+build_properties:
+  os_name: Ubuntu
+  os_version: 16.04
+  origin: OSFactory
+  root_device_type: ebs
+  virtualization_type: hvm
+
+os_type: linux
+aws:
+  ami_name: ubuntu/images/hvm-ssd/ubuntu-xenial-16.04-amd64-server-*
+  ami_owner: 099720109477
+  build_user: ubuntu
+
+azure:
+  image_publisher: Canonical
+  image_offer: UbuntuServer
+  image_sku: 16.04-LTS
+  storage_account_name: sgosfactory
+  build_user: ubuntu
+  #if storage doesn't exist it will be created

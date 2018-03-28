@@ -11,9 +11,9 @@
 
 - name: "variable cooking"
   set_fact:
-    work_breadcrumb: "providers/{{ osf_provider }}/{{ osf_os_type }}/{{ osf_src_image }}"
+    work_breadcrumb: "images/{{ osf_os_type }}/{{ osf_src_image }}"
 
-- name: "{{ work_breadcrumb }} - include ami variables"
+- name: "{{ work_breadcrumb }} - include image variables"
   include_vars: "{{ playbook_dir }}/../{{ work_breadcrumb }}/vars.global.yml"
 
 - name: "{{ work_breadcrumb }} - include accounts variables"
@@ -36,8 +36,10 @@
       {{ playbook_dir }}/../target/{{ work_breadcrumb }}/{{ ansible_date_time.date }}-{{ ansible_date_time.hour }}.{{ ansible_date_time.minute }}-{{ 100 | random | to_uuid | hash('md5') }}
     osf_ref_dir: >-
       {{ playbook_dir }}/../{{ work_breadcrumb }}
-    osf_packer_build: >-
-      {{ playbook_dir }}/../providers/{{ osf_provider }}/{{ osf_os_type }}.packer-build.json
+    osf_template_dir: >-
+      {{ playbook_dir }}/templates/{{ osf_provider }}.packer.json.j2
+    osf_files_dir: >-
+      {{ playbook_dir }}/templates/files/
 
 - name: "variable cooking"
   set_fact:
@@ -45,6 +47,8 @@
       {{ osf_work_dir }}/packer.{{ osf_target_name }}.log
     osf_packer_output: >-
       {{ osf_work_dir }}/packer.{{ osf_target_name }}.output.json
+    osf_packer_build: >-
+      {{ osf_work_dir }}/packer.json
 
 - name: "prepare target repository"
   file:

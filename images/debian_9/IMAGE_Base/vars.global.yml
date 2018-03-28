@@ -1,0 +1,21 @@
+---
+build_name: Debian_9_AMI_001
+build_properties:
+  os_name: Debian
+  os_version: 9
+  origin: OSFactory
+  root_device_type: ebs
+  virtualization_type: hvm
+
+os_type: linux
+aws:
+  ami_name: debian-stretch-hvm-x86_64-gp2-*
+  ami_owner: 379101102735
+  build_user: admin
+
+azure:
+  image_publisher: credativ
+  image_offer: Debian
+  image_sku: 9
+  storage_account_name: sgosfactory
+  build_user: admin

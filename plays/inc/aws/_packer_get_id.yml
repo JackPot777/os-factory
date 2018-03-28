@@ -5,8 +5,8 @@
 
 - name: "{{ work_breadcrumb }} - extract built ami id"
   set_fact:
-    ami_id: "{{ (packer_output.builds[0].artifact_id|string).split(':')[1] }}"
+    image_id: "{{ (packer_output.builds[0].artifact_id|string).split(':')[1] }}"
 
 - debug:
-    msg: "BUILT AMI ID {{ ami_id }}"
+    msg: "BUILT AMI ID {{ image_id }}"
     verbosity: 1

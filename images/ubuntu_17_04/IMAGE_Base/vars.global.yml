@@ -1,0 +1,21 @@
+---
+build_name: Ubuntu_17_04_AMI_001
+build_properties:
+  os_name: Ubuntu
+  os_version: 17.04
+  origin: OSFactory
+  root_device_type: ebs
+  virtualization_type: hvm
+
+os_type: linux
+aws:
+  ami_name: ubuntu/images/hvm-ssd/ubuntu-zesty-17.04-amd64-server-*
+  ami_owner: 099720109477
+  build_user: ubuntu
+
+azure:
+  image_publisher: Canonical
+  image_offer: UbuntuServer
+  image_sku: 17.10
+  storage_account_name: sgosfactory
+  build_user: ubuntu

@@ -1,0 +1,21 @@
+---
+build_name: Windows_2012_AMI_001
+build_properties:
+  os_name: Windows
+  os_version: 2012
+  origin: CoE
+  root_device_type: ebs
+  virtualization_type: hvm
+
+os_type: windows
+aws:
+  ami_name:  Windows_Server-2012-R2_RTM-English-64Bit-Base-*
+  ami_owner: 801119661308
+  build_user: Administrator
+
+azure:
+  image_publisher: MicrosoftWindowsServer
+  image_offer: WindowsServer
+  image_sku: 2012-R2-Datacenter-smalldisk
+  storage_account_name: sgosfactory
+  build_user: Administrator

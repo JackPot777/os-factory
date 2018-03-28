@@ -13,3 +13,9 @@ target/
 !.vscode/tasks.json
 !.vscode/launch.json
 !.vscode/extensions.json
+
+##########
+# Packer #
+##########
+packer_cache
+output-virtualbox-iso

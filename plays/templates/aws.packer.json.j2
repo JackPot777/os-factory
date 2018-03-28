@@ -1,0 +1,81 @@
+{
+  "variables": {
+    "aws_access_key": "",
+    "aws_secret_key": "",
+    "aws_token": "",
+    "build_subnet_id": "(( aws_subnetID ))",
+    "build_instance_type": "t2.large",
+    "build_default_user": "(( aws.build_user ))",
+    "build_region": "(( aws_region ))",
+    "build_image_name": "(( osf_target_name ))",
+    "build_provider": "(( osf_provider ))",
+    "source_ami_name": "(( aws.ami_name ))",
+    "source_ami_owner": "(( aws.ami_owner ))",
+    "playbook_build": "(( osf_ref_dir ))",
+    "playbook_files": "(( osf_files_dir ))",
+    "playbook_roles": "(( osf_work_dir ))/roles",
+    "json_output_path": "(( osf_packer_output ))"
+  },
+
+  "builders": [
+    {
+      "type": "amazon-ebs",
+      "region": "{{ user `build_region` }}",
+      "access_key": "{{ user `aws_access_key` }}",
+      "secret_key": "{{ user `aws_secret_key` }}",
+      "token": "{{ user `aws_token` }}",
+      "subnet_id": "{{ user `build_subnet_id` }}",
+      "source_ami_filter": {
+        "filters": {
+          "name": "{{ user `source_ami_name` }}",
+          "virtualization-type": "hvm",
+          "root-device-type": "ebs"
+        },
+        "owners": [
+          "{{ user `source_ami_owner` }}"
+        ],
+        "most_recent": true
+      },
+      "instance_type": "{{ user `build_instance_type` }}",
+      "ami_name": "{{ user `build_image_name` }}",
+      "tags": {
+        "Name": "{{ user `build_image_name` }}",
+        "Release": "{{ timestamp }}"
+      },
+      "user_data_file": "{{ user `playbook_files`}}/setup_python.txt",
+      (% if osf_os_type == "windows" %)
+      "communicator": "winrm",
+      "winrm_username": "{{ user `build_default_user` }}",
+      "user_data_file": "{{ user `playbook_files`}}/setup_winrm.txt",
+      (% else %)
+      "ssh_username": "{{ user `build_default_user` }}",
+      "ssh_private_ip": true,
+      "ssh_timeout": "30m"
+      (% endif %)
+    }
+  ],
+
+  "provisioners": [
+    (% if osf_os_type == "windows" %)
+    {
+      "type": "windows-update"
+    },
+    {
+      "type": "windows-restart"
+    },
+    (% endif %)
+    {
+      "type": "ansible",
+      "user": "{{ user `build_default_user` }}",
+      "playbook_file": "{{ user `playbook_build`}}/play.yml",
+      "ansible_env_vars": [ "ANSIBLE_ROLES_PATH={{ user `playbook_roles`}}" ]
+    }
+  ],
+
+  "post-processors": [
+    {
+      "type": "manifest",
+      "output": "{{ user `json_output_path` }}"
+    }
+  ]
+}
