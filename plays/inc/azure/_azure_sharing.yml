@@ -1,0 +1,139 @@
+---
+- name: "Login to Azure"
+  shell: |
+    az login \
+        --service-principal \
+        -u "{{ lookup('env','arm_client_id') }}" \
+        -p "{{ lookup('env','arm_client_secret') }}" \
+        --tenant "{{ tenant_id }}"
+
+- name: "Source: Set azure subscription"
+  shell: |
+    az account set --subscription "{{ azure_subscription_id }}" 
+
+- name: "Source: Get Storage Key"
+  shell: |
+    az storage account keys list \ 
+      -g "{{ azure_ressource_group }}" \ 
+      -n "{{ azure.storage_account_name }}" -o json
+  register: src_key_list
+
+- name: "Source: set fact for storage's key"
+  set_fact:
+    src_key_storage_tmp: "{{ src_key_list.stdout }}" 
+
+- name: "Source: set fact for storage request"
+  set_fact:
+    src_key_storage: "{{  src_key_storage_tmp[0].value }}" 
+
+- name: "Source: Get Source Storage SAS Token"
+  shell: |
+    az storage account generate-sas --expiry 2018-06-01'T'12:00'Z' \
+    --permissions aclrpuw \
+    --resource-types sco \
+    --services b --https-only \
+    --account-name "{{ azure.storage_account_name }}" \
+    --account-key "{{ src_key_storage }}" \
+    -o tsv
+  register: src_sas_token_raw
+
+- name: "Source: set fact for storage sas token"
+  set_fact:
+    src_sas_token_tmp: "{{ src_sas_token_raw.stdout }}" 
+
+## Starting Destination 
+
+- name: "Destination: Set azure subscription"
+  shell: |
+    az account set \
+      --subscription "{{ azure_to_share_with.subscription_id }}" 
+
+- name: "Destination: Get Storage Keys"
+  shell: |
+    az storage account keys list \ 
+      -g "{{ azure_to_share_with.resource_group }}" \ 
+      -n "{{ azure_to_share_with.storage_account }}" -o json
+  register: dst_key_list
+
+- name: "Source: set fact for storage's key"
+  set_fact:
+    dst_key_storage_tmp: "{{ dst_key_list.stdout }}" 
+
+- name: "Misc: Extract data from fact for Destination storage request"
+  set_fact:
+    dst_key_storage: "{{  dst_key_storage_tmp[0].value }}" 
+
+- name: "Destination: Get Storage SAS Token"
+  shell: |
+    az storage account generate-sas --expiry 2018-06-01'T'12:00'Z' \
+    --permissions aclrpuw \
+    --resource-types sco \
+    --services b --https-only \
+    --account-name "{{ azure_to_share_with.storage_account }}" \
+    --account-key "{{ dst_key_storage }}" \
+    -o tsv
+  register: dst_sas_token_raw
+
+- name: "Destination: Create fact from storage sas token"
+  set_fact:
+    dst_sas_token_tmp: "{{ dst_sas_token_raw.stdout }}" 
+
+- name: "Destination: Create container"
+  shell: |
+    az storage container create \
+    -n "{{ osf_os_type | replace("_","") }}" \
+    --account-name "{{ azure_to_share_with.storage_account }}" \
+    --sas-token "{{ dst_sas_token_tmp }}"
+
+- name: "Misc: Set azure subscription as source"
+  shell: |
+    az account set --subscription "{{ azure_subscription_id }}"
+
+- name: "Misc: Start blob Copy"
+  shell: |
+    az storage blob copy start \
+    --destination-blob "{{ osf_target_name }}.vhd" \
+    --destination-container "{{ osf_os_type | replace("_","") }}" \
+    --account-name "{{ azure_to_share_with.storage_account }}" \
+    --source-account-name "{{ azure.storage_account_name }}" \
+    --source-container "system/Microsoft.Compute/Images/{{ osf_os_type | replace("_","") }}" \
+    --source-blob "{{ vhd_fact }}" \
+    --sas-token "{{ dst_sas_token_tmp }}" \
+    --source-sas "{{ src_sas_token_tmp }}"
+
+- name: "Misc: Set azure account as destination"
+  shell: |
+    az account set \
+      --subscription "{{ azure_to_share_with.subscription_id }}" 
+
+- name: "Misc: Get status of copy"
+  shell: |
+    az storage blob show \
+    --name "{{ osf_target_name }}.vhd" \
+    --container-name "{{ osf_os_type | replace("_","") }}" \
+    --account-name "{{ azure_to_share_with.storage_account }}" \
+    -o tsv --query 'properties.copy.status'
+  register: copy_storage_progress
+  until: copy_storage_progress.stdout != "pending"
+  retries: 60
+
+- name: "Destination: Convert blob to managed disk"
+  shell: |
+    az disk create \
+    -g "{{ azure_to_share_with.resource_group }}" \
+    -n "{{ osf_target_name }}" \
+    --source "https://{{ azure_to_share_with.storage_account }}.blob.core.windows.net/{{ osf_os_type | replace("_","") }}/{{ osf_target_name }}.vhd"
+  retries: 60
+
+- name: "Destination: Create image from managed disk"
+  shell: |
+    az image create -g "{{ azure_to_share_with.resource_group }}" \
+     -n "{{ osf_target_name }}" --source "{{ osf_target_name }}" \
+     --os-type {{ os_type }}
+
+- name: "Destination: Delete temp managed disk"
+  shell: |
+    az disk delete \
+    -g "{{ azure_to_share_with.resource_group }}" \
+    -n "{{ osf_target_name }}" --yes
+  retries: 60

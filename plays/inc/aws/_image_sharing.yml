@@ -1,17 +1,17 @@
 ---
 - name: "{{ work_breadcrumb }} - tag ami"
   ec2_tag:
-    resource: "{{ ami_id }}"
+    resource: "{{ image_id }}"
     state: present
     region: "{{ aws_region }}"
     tags: "{{ build_properties }}"
 
-- name: "{{ work_breadcrumb }} - share ami"
+- name: "{{ work_breadcrumb }} - share image"
   ec2_ami:
-    image_id: "{{ ami_id }}"
+    image_id: "{{ image_id }}"
     region: "{{ aws_region }}"
     state: present
     launch_permissions:
       user_ids: ['{{ item }}']
   when: item is defined and item != None
-  with_items: "{{ accounts_to_share_with }}"
+  with_items: "{{ aws_accounts_to_share_with }}"

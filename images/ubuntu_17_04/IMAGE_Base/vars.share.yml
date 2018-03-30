@@ -1,2 +1,6 @@
 ---
-accounts_to_share_with:
+aws_accounts_to_share_with:
+azure_to_share_with:
+  subscription_id: 3511a7ea-xxxx-4b80-ab07-f1818195893b 
+  resource_group: RG-OsFactory
+  storage_account: sgosfactoryshare

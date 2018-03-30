@@ -19,10 +19,10 @@
     - include_tasks: "{{ include_dir }}/{{ osf_provider }}/_packer_get_id.yml"
 
   post_tasks:
-    - include_tasks: "{{ include_dir }}/{{ osf_provider }}/_ami_sharing.yml"
+    - include_tasks: "{{ include_dir }}/{{ osf_provider }}/_image_sharing.yml"
     - name: "Build success - awesomeness, joy, that sort of feelings"
       debug:
         msg: >-
           Image build is a success.
           The AMI and SNAPSHOT is now in your AWS account and shared with bro-accounts.
-          AMI : {{ ami_id }}
+          AMI : {{ image_id }}

@@ -1,0 +1,142 @@
+---
+- name: "Azure: Init -> get metadata"
+  uri:
+    url: "http://169.254.169.254/metadata/instance/?api-version=2017-08-01"
+    return_content: yes
+    headers:
+      Metadata: "true"
+  register: azure_metadata
+
+- name: "Azure: Init -> set fact global for azure"
+  set_fact:
+    azure_region: "{{ azure_metadata.json.compute.location }}"
+    azure_ressource_group: "{{ azure_metadata.json.compute.resourceGroupName }}"
+    azure_subscription_id: "{{ azure_metadata.json.compute.subscriptionId }}"
+    azure_vm_prefix: "{{ azure_metadata.json.network.interface[0].ipv4.subnet[0].prefix }}"
+    azure_vm_address: "{{ azure_metadata.json.network.interface[0].ipv4.subnet[0].address }}"
+
+- name: "Azure: Init -> get Managed Identity Service token"
+  uri:
+    url: "http://localhost:50342/oauth2/token"
+    return_content: yes
+    method: POST
+    body: "resource=https://management.azure.com/"
+    headers:
+      Metadata: "true"
+  register: auth_token
+
+- name: "Azure: Init -> Get virtual network from management.azure.com"
+  uri:
+    url: "https://management.azure.com/subscriptions/{{ azure_subscription_id }}/resourceGroups/{{ azure_ressource_group }}/providers/Microsoft.Network/virtualNetworks?api-version=2017-10-01"
+    return_content: yes
+    headers:
+      Content-Type: "application/json"
+      Metadata: "true"
+      Authorization: "Bearer {{ auth_token.json.access_token }}"
+  register: virtual_network 
+
+- name: "Azure: Init -> Get tenant id from management.azure.com"
+  uri:
+    url: https://management.azure.com/tenants?api-version=2016-06-01
+    return_content: yes
+    headers:
+      Content-Type: "application/json"
+      Metadata: "true"
+      Authorization: "Bearer {{ auth_token.json.access_token }}"
+  register: tenant_id_resp 
+
+- name: "Azure: Init -> Intermediate Fact for tenant id"
+  set_fact: tenant_id_resp_cont="{{ tenant_id_resp.content | from_json  }}"
+
+- name: "Azure: Init -> set fact tenant_id"
+  set_fact: tenant_id="{{ tenant_id_resp_cont.value[0].tenantId }}"
+
+- name: "Azure: Init -> Intermediate fact for virtual network content to json"
+  set_fact: vnet="{{ virtual_network.content | from_json }}"
+
+- name: "Azure: Init -> Set fact for virtual network name"
+  set_fact: azure_vnet_name="{{ vnet.value[0].name }}"
+
+- name: "Azure: Init -> Intermediate fact for virtual subnets"
+  set_fact: subnets="{{ vnet.value[0].properties.subnets }}"
+
+- name: "Azure: Init -> concat var to get subnet prefix for lookup"
+  set_fact: look="{{ azure_vm_address }}/{{ azure_vm_prefix }}"
+
+- name: "Azure: Init -> create subnet query request"
+  set_fact: subnet_query="[?(@.properties.addressPrefix=='{{ look }}')].name"
+
+- name: "Azure: Init -> Set temp subnet fact for remove array" 
+  set_fact:
+    azure_subnet_name_tmp: "{{ subnets|json_query(subnet_query) }}"
+
+- name: "Azure: Init -> Set subnet fact"
+  set_fact:
+    azure_subnet_name: "{{ azure_subnet_name_tmp[0] }}"
+              
+- name: "Azure: Init -> set fact for body request"
+  set_fact:
+    body: {"name":"{{ azure.storage_account_name }}","type":"Microsoft.Storage/storageAccounts"}
+
+- name: "Azure: Init -> get storage accounts from management.azure.com"
+  uri:
+    url: "https://management.azure.com/subscriptions/{{ azure_subscription_id }}/providers/Microsoft.Storage/checkNameAvailability?api-version=2017-06-01"
+    return_content: yes
+    method: POST
+    body: "{{ body | to_json }}"
+    body_format: json
+    headers:
+      Content-Type: "application/json"
+      Metadata: "true"
+      Authorization: "Bearer {{ auth_token.json.access_token }}"
+  register: azure_storage_exist 
+
+- name: "Azure: Init -> Create fact for storage request"
+  set_fact:
+    body_storage: {"sku": {"name": "Standard_LRS"},"kind": "Storage","location": "westeurope"} 
+  when: ( azure_storage_exist.json.nameAvailable == True)
+  
+- name: "Azure: Init -> create storage accounts from management.azure.com"
+  uri:
+    url: "https://management.azure.com/subscriptions/{{ azure_subscription_id }}/resourceGroups/{{ azure_ressource_group }}/providers/Microsoft.Storage/storageAccounts/{{ azure.storage_account_name }}?api-version=2017-06-01"
+    return_content: yes
+    method: PUT
+    body: "{{ body_storage | to_json }}"
+    body_format: json
+    status_code: 202
+    headers:
+      Content-Type: "application/json"
+      Metadata: "true"
+      Authorization: "Bearer {{ auth_token.json.access_token }}"
+  register: azure_storage 
+  when: ( azure_storage_exist.json.nameAvailable == True)
+
+- name: "Login to Azure"
+  shell: |
+    az login \
+        --service-principal \
+        -u "{{ lookup('env','arm_client_id') }}" \
+        -p "{{ lookup('env','arm_client_secret') }}" \
+        --tenant "{{ tenant_id }}"
+
+- name: "Get SPN objectid"
+  shell: |
+     az ad sp show --id {{ lookup('env','arm_client_id') }} --query 'objectId' -o tsv
+  register: objectid_out
+
+- debug:
+    msg: "{{ objectid_out.stdout  }}"
+  verbosity: 1
+
+- name: "Set SPN Objectid Fact"
+  set_fact:
+    objectid: "{{ objectid_out.stdout }}"
+
+- name: "Azure: Init -> create packer config"
+  template:
+    src: "{{ osf_template_dir }}"
+    dest: "{{ osf_packer_build }}"
+    block_start_string: "(%"
+    block_end_string: "%)"
+    variable_start_string: "(("
+    variable_end_string: "))"
