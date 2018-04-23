@@ -46,7 +46,7 @@
       (% if osf_os_type == "windows_2016" or osf_os_type == "windows_2012" %)
       "communicator": "winrm",
       "winrm_username": "{{ user `build_default_user` }}",
-      "user_data_file": "{{ user `playbook_files`}}/setup_winrm.txt",
+      "user_data_file": "{{ user `playbook_files`}}/setup_winrm.txt"
       (% else %)
       "ssh_username": "{{ user `build_default_user` }}",
       "ssh_timeout": "30m"
