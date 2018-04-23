@@ -49,7 +49,6 @@
       "user_data_file": "{{ user `playbook_files`}}/setup_winrm.txt",
       (% else %)
       "ssh_username": "{{ user `build_default_user` }}",
-      "ssh_private_ip": true,
       "ssh_timeout": "30m"
       (% endif %)
     }
