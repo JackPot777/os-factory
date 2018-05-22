@@ -15,14 +15,14 @@ pipeline {
         }
         stage('Ubuntu 16.04') {
           steps {
-            sh  "sh ./os_factory aws ubuntu_16.04 IMAGE_Base"
+            sh  "sh ./os_factory aws ubuntu_16_04 IMAGE_Base"
           }
         }
-        stage('Ubuntu 17.04') {
-          steps {
-            sh  "sh ./os_factory aws ubuntu_17.04 IMAGE_Base"
-          }
-        }
+        // stage('Ubuntu 17.04') {
+        //   steps {
+        //     sh  "sh ./os_factory aws ubuntu_17_04 IMAGE_Base"
+        //   }
+        // }
         stage('CentOS 7') {
           steps {
             sh  "sh ./os_factory aws centos_7 IMAGE_Base"
